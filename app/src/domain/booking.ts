@@ -49,9 +49,9 @@ export function makeBooking(args: {
 }
 
 export function cancelBooking(b: Booking, offering: Offering, now: Date): Result<Booking> {
-  if (b.status !== 'active') return err('Booking is not active');
   if (offering.status !== 'open' || now.getTime() >= Date.parse(offering.cutoffAt)) {
     return err('Cancellation closed at 5 pm');
   }
+  if (b.status !== 'active') return err('Booking is not active');
   return ok({ ...b, status: 'cancelled', cancelledAt: now.toISOString() });
 }
