@@ -3,6 +3,8 @@ import { useRepo, useNow, useSession } from '../../AppProviders';
 import { useBookings, useItems, useOfferings } from '../../hooks';
 import { Countdown } from '../../components/Countdown';
 import { QrCoupon } from '../../components/QrCoupon';
+import { FoodMark, isVegItem } from '../../components/FoodMark';
+import { DayRail } from '../../components/DayRail';
 import { makeBooking, MAX_PLATES, MIN_PLATES } from '../../../domain/booking';
 import { cryptoRand } from '../../../domain/random';
 import { formatRupees } from '../../../domain/format';
@@ -18,7 +20,6 @@ function OfferCard({ offering, item, onBooked }: { offering: Offering; item: Ite
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const open = offering.status === 'open' && now.getTime() < Date.parse(offering.cutoffAt);
-  const accent = item.name === 'Chicken' ? 'border-chilli' : 'border-turmeric';
 
   const book = async () => {
     setBusy(true);
@@ -32,31 +33,37 @@ function OfferCard({ offering, item, onBooked }: { offering: Offering; item: Ite
   };
 
   return (
-    <section className={`panel border-l-[6px] ${accent} p-5`} aria-labelledby={`item-${item.id}`}>
-      <div className="flex items-baseline justify-between gap-3">
-        <h2 id={`item-${item.id}`} className="font-display text-xl font-bold">{item.name}</h2>
-        <p className="font-bold">{formatRupees(item.pricePaise)} a plate</p>
-      </div>
-      <div className="mt-4">
-        <Countdown cutoffAt={offering.cutoffAt} now={now} />
-        <p className="mt-1 text-sm text-muted">
-          {open ? 'Book now and your plate is kept for you. Free to cancel until 5 pm.' : 'Bookings for tonight are locked. Walk-in plates may be available at the counter.'}
-        </p>
-      </div>
-      {open && (
-        <div className="mt-5 flex flex-wrap items-center gap-3">
-          <div className="flex items-center rounded-lg border border-line">
-            <button aria-label="Remove a plate" className="px-3 py-2 text-xl font-bold disabled:opacity-30"
-              disabled={plates <= MIN_PLATES} onClick={() => setPlates((p) => p - 1)}>−</button>
-            <span className="w-10 text-center font-bold" aria-live="polite">{plates}</span>
-            <button aria-label="Add a plate" className="px-3 py-2 text-xl font-bold disabled:opacity-30"
-              disabled={plates >= MAX_PLATES} onClick={() => setPlates((p) => p + 1)}>+</button>
+    <section className="token token-draft p-5" aria-labelledby={`item-${item.id}`}>
+      <div className="flex items-start justify-between gap-3">
+        <div>
+          <div className="flex items-center gap-2">
+            <FoodMark veg={isVegItem(item.name)} />
+            <p className="text-sm font-bold text-inksoft">{formatRupees(item.pricePaise)} a plate</p>
           </div>
-          <button className="btn-primary flex-1" disabled={busy} onClick={() => void book()}>
-            Book {plates} {plates === 1 ? 'plate' : 'plates'}
-          </button>
-          <p className="w-full text-sm text-muted">{formatRupees(plates * item.pricePaise)} is added to your mess bill at 5 pm.</p>
+          <h2 id={`item-${item.id}`} className="mt-1 font-display text-5xl font-extrabold leading-none tracking-tight condensed">{item.name}</h2>
         </div>
+        <div className="text-right"><Countdown cutoffAt={offering.cutoffAt} now={now} /></div>
+      </div>
+      <p className="mt-3 max-w-prose text-sm text-inksoft">
+        {open ? 'Book now and your plate is kept for you. Free to cancel until 5 pm.' : 'Bookings for tonight are locked. Walk-in plates may be available at the counter.'}
+      </p>
+      {open && (
+        <>
+          <div className="tear my-5" aria-hidden />
+          <div className="flex flex-wrap items-center gap-3">
+            <div className="flex items-center rounded-md border border-line">
+              <button aria-label="Remove a plate" className="px-3 py-2 text-xl font-bold disabled:opacity-30"
+                disabled={plates <= MIN_PLATES} onClick={() => setPlates((p) => p - 1)}>−</button>
+              <span className="w-10 text-center font-display text-2xl font-extrabold condensed tnum" aria-live="polite">{plates}</span>
+              <button aria-label="Add a plate" className="px-3 py-2 text-xl font-bold disabled:opacity-30"
+                disabled={plates >= MAX_PLATES} onClick={() => setPlates((p) => p + 1)}>+</button>
+            </div>
+            <button className="btn-primary flex-1" disabled={busy} onClick={() => void book()}>
+              Book {plates} {plates === 1 ? 'plate' : 'plates'}
+            </button>
+            <p className="w-full text-sm text-inksoft">{formatRupees(plates * item.pricePaise)} is added to your mess bill at 5 pm.</p>
+          </div>
+        </>
       )}
       {error && <p role="alert" className="mt-3 font-bold text-bad">{error}</p>}
     </section>
@@ -90,8 +97,9 @@ export function Today() {
   return (
     <div className="space-y-6">
       <div>
+        <p className="text-inksoft">{prettyDate(today)}</p>
         <h1 className="font-display text-3xl font-extrabold tracking-tight">Tonight's extras</h1>
-        <p className="text-muted">{prettyDate(today)}</p>
+        <DayRail now={now} />
       </div>
       {offs.length === 0 ? (
         <div className="panel p-6">

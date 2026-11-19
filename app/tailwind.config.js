@@ -16,6 +16,10 @@ export default {
         warnsoft: '#FFF4D6',
         bad: '#A8231C',
         badsoft: '#FBE7E5',
+        paneer: '#F7DE8A',
+        chicken: '#F5CFC8',
+        nonveg: '#7A3B12',
+        inksoft: '#3E4A52',
       },
       fontFamily: {
         display: ['"Bricolage Grotesque"', 'system-ui', 'sans-serif'],

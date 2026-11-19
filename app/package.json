@@ -14,7 +14,7 @@
     "evals": "tsx evals/run-evals.ts"
   },
   "dependencies": {
-    "@supabase/supabase-js": "^2.47.10",
+    "@supabase/supabase-js": "^2.119.2",
     "@tanstack/react-query": "^5.62.7",
     "html5-qrcode": "^2.3.8",
     "qrcode": "^1.5.4",

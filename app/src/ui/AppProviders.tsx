@@ -58,6 +58,8 @@ export function useUsers() {
 
 function SessionProvider({ children }: { children: ReactNode }) {
   const users = useUsers();
+  const repo = useRepo();
+  const queryClient = useQueryClient();
   const [userId, setUserId] = useState<string | null>(readSession);
   const lastStudent = useRef<string>('u-21BCE1001');
   const user = users.data?.find((u) => u.id === userId) ?? null;
@@ -68,7 +70,8 @@ function SessionProvider({ children }: { children: ReactNode }) {
     user,
     ready: users.isSuccess,
     async login(rollNo) {
-      const list = users.data ?? [];
+      // Wait for the user list if it hasn't loaded yet (a quick-login click right after the page opens).
+      const list = users.data ?? (await queryClient.fetchQuery({ queryKey: ['users'], queryFn: () => repo.listUsers() })) ?? [];
       const u = list.find((x) => x.rollNo.toLowerCase() === rollNo.trim().toLowerCase());
       if (!u) return err(`No student with roll number ${rollNo.trim()}`);
       set(u.id);
@@ -78,7 +81,7 @@ function SessionProvider({ children }: { children: ReactNode }) {
     async switchRole(role) {
       set(role === 'mess' ? (users.data?.find((u) => u.role === 'mess')?.id ?? 'u-MESS01') : lastStudent.current);
     },
-  }), [user, users.isSuccess, users.data, set]);
+  }), [user, users.isSuccess, users.data, set, queryClient, repo]);
   return <SessionCtx.Provider value={value}>{children}</SessionCtx.Provider>;
 }
 
@@ -88,16 +91,35 @@ function Sync() {
   const qc = useQueryClient();
   const clock = useClockState();
   const running = useRef(false);
+  const again = useRef(false);
+  const latest = useRef(clock);
+  latest.current = clock;
 
-  useEffect(() => repo.subscribe(() => void qc.invalidateQueries()), [repo, qc]);
+  // Change events can arrive every few ms (e.g. a day's simulated bookings). Batch them into one
+  // refresh per 250 ms, and let in-flight reads finish: cancelling them on every event starves the screen.
+  useEffect(() => {
+    let pending: ReturnType<typeof setTimeout> | null = null;
+    const off = repo.subscribe(() => {
+      pending ??= setTimeout(() => { pending = null; void qc.invalidateQueries(undefined, { cancelRefetch: false }); }, 250);
+    });
+    return () => { off(); if (pending) clearTimeout(pending); };
+  }, [repo, qc]);
 
   useEffect(() => {
     if (!clock) return;
+    // One tick at a time. A tick asked for while one runs (e.g. right after a clock jump)
+    // runs as soon as it finishes, with the latest clock, instead of waiting for the interval.
     const tick = async () => {
-      if (running.current) return;
+      if (running.current) { again.current = true; return; }
       running.current = true;
-      try { await runTick(repo, resolveNow(clock, new Date()), { simulateStudents: SIMULATE }); } catch (e) { console.error('tick failed', e); }
-      finally { running.current = false; }
+      try {
+        do {
+          again.current = false;
+          const c = latest.current;
+          if (!c) break;
+          try { await runTick(repo, resolveNow(c, new Date()), { simulateStudents: SIMULATE }); } catch (e) { console.error('tick failed', e); }
+        } while (again.current);
+      } finally { running.current = false; }
     };
     void tick();
     const t = setInterval(tick, repo.mode === 'local' ? 3000 : 15000);

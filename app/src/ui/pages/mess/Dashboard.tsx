@@ -5,6 +5,7 @@ import { useBookings, useItems, useOfferings } from '../../hooks';
 import { formatKg } from '../../../domain/format';
 import { addDays, istDate, prettyDate } from '../../../domain/time';
 import { endOfDay } from '../../../domain/counter';
+import { FoodMark, isVegItem } from '../../components/FoodMark';
 import type { Item, Offering } from '../../../domain/types';
 
 function PurchaseForm({ offering }: { offering: Offering }) {
@@ -38,20 +39,19 @@ function OfferingPanel({ offering: o, item }: { offering: Offering; item: Item }
   const active = (bookings.data ?? []).filter((b) => b.status === 'active' && Date.parse(b.createdAt) <= now.getTime());
   const bookedPlates = active.reduce((s, b) => s + b.platesRequested, 0);
   const isOpen = o.status === 'open' && now.getTime() < Date.parse(o.cutoffAt);
-  const accent = item.name === 'Chicken' ? 'border-chilli' : 'border-turmeric';
 
   if (isOpen || o.status === 'open') {
     return (
-      <section className={`panel border-l-[6px] ${accent} p-5`}>
-        <h2 className="font-display text-xl font-bold">{item.name}</h2>
-        <p className="mt-3 text-sm text-muted">Suggested purchase</p>
-        <p className="font-display text-4xl font-extrabold tracking-tight">Buy {formatKg(o.forecastBuyGrams)}</p>
+      <section className="slip max-w-lg p-5 shadow-sm">
+        <ItemHeading item={item} />
+        <p className="mt-3 text-sm text-inksoft">Suggested purchase</p>
+        <p className="font-display text-5xl font-extrabold leading-none tracking-tight condensed">Buy {formatKg(o.forecastBuyGrams)}</p>
         <p className="mt-2 max-w-prose text-sm">{o.forecastReason}</p>
         <p className="mt-3 text-sm">
           {o.purchasedGrams === null ? 'No purchase recorded yet.' : <>Bought so far: <b>{formatKg(o.purchasedGrams)}</b></>}
         </p>
         <PurchaseForm offering={o} />
-        <div className="mt-5 rounded-lg bg-tray p-3">
+        <div className="mt-5 border-t-2 border-dashed border-line pt-4">
           <p className="font-bold">{bookedPlates} {bookedPlates === 1 ? 'plate' : 'plates'} booked so far</p>
           <p className="text-sm text-muted">Bookings close at 5 pm. The cooking sheet appears here then.</p>
         </div>
@@ -62,27 +62,42 @@ function OfferingPanel({ offering: o, item }: { offering: Offering; item: Item }
   const confirmed = o.confirmedPlates ?? 0;
   const buffer = o.bufferPlates ?? 0;
   const trimmed = (o.requestedPlates ?? confirmed) - confirmed;
+  const total = confirmed + buffer;
   return (
-    <section className={`panel border-l-[6px] ${accent} p-5`}>
+    <section className="slip max-w-lg p-5 shadow-sm">
       <div className="flex flex-wrap items-center gap-2">
-        <h2 className="font-display text-xl font-bold">{item.name}</h2>
+        <ItemHeading item={item} />
         {o.purchaseAssumed && (
-          <span className="rounded-md bg-warnsoft px-2 py-0.5 text-sm font-bold text-warn"
+          <span className="rounded bg-warnsoft px-2 py-0.5 text-sm font-bold text-warn"
             title="No purchase was recorded before 5 pm, so the suggested amount was assumed.">Purchase assumed</span>
         )}
       </div>
-      <p className="mt-3 font-display text-4xl font-extrabold tracking-tight">Cook {confirmed + buffer} plates</p>
-      <p className="mt-1">{confirmed} booked + {buffer} for walk-ins, using {formatKg((confirmed + buffer) * item.gramsPerPlate)} {item.name.toLowerCase()}.</p>
+      <p className="mt-3 font-display text-5xl font-extrabold leading-none tracking-tight condensed">Cook {total} plates</p>
+      <p className="sr-only">{confirmed} booked + {buffer} for walk-ins, using {formatKg(total * item.gramsPerPlate)} {item.name.toLowerCase()}.</p>
+      <dl className="mt-4 max-w-xs text-sm tnum" aria-hidden>
+        <div className="flex justify-between py-1"><dt>Booked by students</dt><dd className="font-bold">{confirmed}</dd></div>
+        <div className="flex justify-between py-1"><dt>Kept for walk-ins</dt><dd className="font-bold">+ {buffer}</dd></div>
+        <div className="flex justify-between border-t-2 border-ink py-1 font-bold"><dt>Plates to cook</dt><dd>{total}</dd></div>
+        <div className="flex justify-between py-1 text-inksoft"><dt>{item.name} needed</dt><dd>{formatKg(total * item.gramsPerPlate)}</dd></div>
+      </dl>
       {trimmed > 0 && (
-        <p role="alert" className="mt-3 rounded-lg bg-badsoft p-3 text-sm font-bold text-bad">
+        <p role="alert" className="mt-3 rounded bg-badsoft p-3 text-sm font-bold text-bad">
           Stock ran short by {trimmed} {trimmed === 1 ? 'plate' : 'plates'}. The latest bookings were trimmed and those students were not charged.
         </p>
       )}
-      <div className="mt-4 flex flex-wrap gap-2">
+      <div className="mt-5 flex flex-wrap gap-3">
         <Link to="/counter" className="btn-primary">Open counter</Link>
-        <p className="self-center text-sm text-muted">Walk-ins sold: {o.walkinsSold} of {buffer}</p>
+        <p className="self-center text-sm text-inksoft tnum">Walk-ins sold: {o.walkinsSold} of {buffer}</p>
       </div>
     </section>
+  );
+}
+
+function ItemHeading({ item }: { item: Item }) {
+  return (
+    <h2 className="flex items-center gap-2 font-display text-xl font-bold">
+      <FoodMark veg={isVegItem(item.name)} />{item.name}
+    </h2>
   );
 }
 
@@ -92,11 +107,11 @@ function Yesterday({ offering: o, item }: { offering: Offering; item: Item }) {
   const e = endOfDay(o, bookings.data);
   const cells: [string, number][] = [['Booked', e.booked], ['Collected', e.served], ['No-shows', e.noShows], ['Walk-ins', e.walkins], ['Cooked, not eaten', e.cookedWaste]];
   return (
-    <div className="panel p-4">
+    <div className="border-t border-line pt-3">
       <p className="font-bold">{item.name}, {prettyDate(o.date)}</p>
       <dl className="mt-2 grid grid-cols-3 gap-3 sm:grid-cols-5">
         {cells.map(([k, v]) => (
-          <div key={k}><dt className="text-xs text-muted">{k}</dt><dd className="font-display text-2xl font-bold">{v}</dd></div>
+          <div key={k}><dt className="text-xs text-muted">{k}</dt><dd className="font-display text-3xl font-extrabold condensed tnum">{v}</dd></div>
         ))}
       </dl>
       {o.purchaseAssumed && <p className="mt-2 text-sm text-warn">No purchase was recorded that day; the suggestion was assumed.</p>}

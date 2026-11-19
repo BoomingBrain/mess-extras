@@ -10,7 +10,7 @@ export function Countdown({ cutoffAt, now }: { cutoffAt: string; now: Date }) {
   const ms = Date.parse(cutoffAt) - now.getTime();
   const urgent = ms > 0 && ms <= 60 * 60 * 1000;
   return (
-    <p className={`font-display text-3xl font-extrabold leading-none tracking-tight ${ms <= 0 ? 'text-muted' : urgent ? 'text-chilli' : ''}`}>
+    <p className={`font-display text-2xl font-extrabold leading-none tracking-tight tnum ${ms <= 0 ? 'text-muted' : urgent ? 'text-chilli' : ''}`}>
       {countdownText(ms)}
     </p>
   );

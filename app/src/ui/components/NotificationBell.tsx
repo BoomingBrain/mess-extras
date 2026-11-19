@@ -29,7 +29,7 @@ export function NotificationBell() {
         onClick={toggle}
         aria-label={unread ? `Notifications, ${unread} unread` : 'Notifications'}
         aria-expanded={open}
-        className="relative rounded-full p-2 hover:bg-white/10"
+        className="relative rounded-full p-2 hover:bg-white"
       >
         <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden>
           <path d="M6 8a6 6 0 1 1 12 0c0 7 3 9 3 9H3s3-2 3-9" /><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0" />
@@ -41,7 +41,7 @@ export function NotificationBell() {
         )}
       </button>
       {open && (
-        <div className="absolute right-0 top-12 z-40 w-[min(22rem,calc(100vw-2rem))] overflow-hidden rounded-xl border border-line bg-white text-ink shadow-xl">
+        <div className="fixed inset-x-4 top-16 z-40 overflow-hidden rounded-xl border border-line bg-white text-ink shadow-xl sm:absolute sm:inset-x-auto sm:right-0 sm:top-12 sm:w-[22rem]">
           <p className="border-b border-line px-4 py-3 font-display font-bold">Notifications</p>
           {items.length === 0 ? (
             <p className="px-4 py-6 text-sm text-muted">Nothing yet. Reminders and confirmations will show up here.</p>

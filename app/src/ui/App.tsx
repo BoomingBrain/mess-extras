@@ -15,6 +15,16 @@ import type { Role } from '../domain/types';
 const STUDENT_NAV = [['/student', 'Tonight'], ['/student/bill', 'My bill']] as const;
 const MESS_NAV = [['/mess', 'Today'], ['/counter', 'Counter'], ['/mess/stock', 'Stock'], ['/mess/accuracy', 'Forecast'], ['/mess/items', 'Items']] as const;
 
+/** A paneer-yellow token with its punched notch: the app's mark. */
+function Wordmark() {
+  return (
+    <svg width="30" height="30" viewBox="0 0 30 30" aria-hidden className="shrink-0">
+      <path d="M3 5h24a1 1 0 0 1 1 1v6a3 3 0 0 0 0 6v6a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1v-6a3 3 0 0 0 0-6V6a1 1 0 0 1 1-1z" fill="#F7DE8A" stroke="#1C2830" strokeWidth="1.6" />
+      <path d="M10 9v12" stroke="#1C2830" strokeWidth="1.6" strokeDasharray="2 2" />
+    </svg>
+  );
+}
+
 function Shell({ role }: { role: Role }) {
   const { user, ready, logout } = useSession();
   const repo = useRepo();
@@ -24,24 +34,27 @@ function Shell({ role }: { role: Role }) {
   const nav = role === 'student' ? STUDENT_NAV : MESS_NAV;
   return (
     <div className="min-h-dvh pb-28">
-      <header className="sticky top-0 z-30 bg-ink text-white">
-        <div className="mx-auto flex max-w-3xl items-center justify-between gap-3 px-4 py-3">
-          <div className="min-w-0">
-            <p className="font-display text-lg font-bold leading-tight">Mess Extras</p>
-            <p className="truncate text-xs text-[#B8C4CC]">
-              {user.role === 'mess' ? 'Mess counter' : `${user.name}, room ${user.room}`}
-              {repo.mode === 'local' ? ' (local demo)' : ''}
-            </p>
+      <header className="sticky top-0 z-30 border-b border-line bg-tray/95 backdrop-blur">
+        <div className="mx-auto flex max-w-3xl items-center justify-between gap-3 px-4 pt-3">
+          <div className="flex min-w-0 items-center gap-2.5">
+            <Wordmark />
+            <div className="min-w-0">
+              <p className="font-display text-lg font-extrabold leading-tight tracking-tight">Mess Extras</p>
+              <p className="truncate text-xs text-inksoft">
+                {user.role === 'mess' ? 'Mess counter' : `${user.name}, room ${user.room}`}
+                {repo.mode === 'local' ? ' (local demo)' : ''}
+              </p>
+            </div>
           </div>
           <div className="flex items-center gap-1">
             <NotificationBell />
-            <button onClick={logout} className="rounded-lg px-2 py-1 text-sm text-[#B8C4CC] hover:text-white">Log out</button>
+            <button onClick={logout} className="rounded-md px-2 py-1 text-sm text-inksoft hover:text-ink">Log out</button>
           </div>
         </div>
-        <nav className="mx-auto flex max-w-3xl gap-1 overflow-x-auto px-2 pb-2" aria-label="Main">
+        <nav className="mx-auto mt-2 flex max-w-3xl gap-5 overflow-x-auto px-4" aria-label="Main">
           {nav.map(([to, label]) => (
             <NavLink key={to} to={to} end
-              className={({ isActive }) => `whitespace-nowrap rounded-lg px-3 py-1.5 text-sm font-bold ${isActive ? 'bg-white text-ink' : 'text-[#B8C4CC] hover:text-white'}`}>
+              className={({ isActive }) => `-mb-px whitespace-nowrap border-b-[3px] py-2 text-sm font-bold ${isActive ? 'border-ink text-ink' : 'border-transparent text-inksoft hover:text-ink'}`}>
               {label}
             </NavLink>
           ))}

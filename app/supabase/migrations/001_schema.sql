@@ -120,5 +120,10 @@ $$;
 
 create or replace function wipe_demo() returns void language sql as $$
   truncate notifications, charges, bookings, stock_batches, offerings, items, users cascade;
-  update app_settings set demo_now = null, demo_set_at = null;
+  update app_settings set demo_now = null, demo_set_at = null where id = 1;
 $$;
+
+-- Newer Supabase projects don't grant the API roles access to tables made in SQL. Demo-grade: grant it all.
+grant usage on schema public to anon, authenticated;
+grant all on all tables in schema public to anon, authenticated;
+grant execute on all functions in schema public to anon, authenticated;

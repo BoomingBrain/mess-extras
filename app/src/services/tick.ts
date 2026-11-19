@@ -45,7 +45,7 @@ export async function runTick(repo: Repo, now: Date, opts: TickOptions = {}): Pr
       if (inserted && opts.simulateStudents) {
         const students = (await repo.listUsers()).filter((u) => u.role === 'student' && !DEMO_STUDENT_IDS.includes(u.id));
         const { booked } = trueDemand(item, a.date, 6, cryptoRand);
-        for (const b of simulatedBookings({ offering: o, item, students, booked, rand: cryptoRand, newId })) await repo.createBooking(b);
+        await Promise.all(simulatedBookings({ offering: o, item, students, booked, rand: cryptoRand, newId }).map((b) => repo.createBooking(b)));
       }
       const stored = (await repo.listOfferings({ from: a.date, to: a.date, itemId: item.id }))[0];
       if (stored) await repo.insertNotifications([purchaseReadyDraft(stored, item)], now);

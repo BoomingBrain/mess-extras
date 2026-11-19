@@ -3,6 +3,7 @@ import { useEffect, useState, type ReactNode } from 'react';
 import type { Booking, Item } from '../../domain/types';
 import { formatRupees } from '../../domain/format';
 import { istClock } from '../../domain/time';
+import { FoodMark, isVegItem } from './FoodMark';
 
 function QrSvg({ value, label }: { value: string; label: string }) {
   const [svg, setSvg] = useState<string | null>(null);
@@ -33,38 +34,58 @@ export function statusText(b: Booking): { text: string; tone: 'ok' | 'warn' | 'b
 }
 
 const TONE = {
-  ok: 'bg-vegsoft text-veg',
-  warn: 'bg-warnsoft text-warn',
-  bad: 'bg-badsoft text-bad',
-  plain: 'bg-tray text-ink',
+  ok: 'text-veg',
+  warn: 'text-warn',
+  bad: 'text-bad',
+  plain: 'text-ink',
 };
 
-/** The meal ticket: details on the left, perforation, QR stub on the right. */
+/** What the mess has stamped on the token so far. */
+function stampFor(b: Booking): { text: string; color: string } | null {
+  if (b.status === 'active') return { text: 'Plate kept', color: '#1C2830' };
+  if (b.status === 'confirmed') return b.servedAt ? { text: 'Eaten', color: '#5A6973' } : { text: 'Paid', color: '#1E6B47' };
+  return null;
+}
+
+/** The mess token: printed on the item's paper colour, torn along the dashes, QR on the stub. */
 export function QrCoupon({ booking, item, action }: { booking: Booking; item: Item; action?: ReactNode }) {
   const status = statusText(booking);
   const usable = booking.status === 'active' || (booking.status === 'confirmed' && !booking.servedAt);
   const plates = booking.platesConfirmed ?? booking.platesRequested;
-  const accent = item.name === 'Chicken' ? 'bg-chilli' : 'bg-turmeric';
+  const veg = isVegItem(item.name);
+  const paper = !usable ? 'token-spent' : veg ? 'token-paneer' : 'token-chicken';
+  const stamp = stampFor(booking);
   return (
-    <article aria-label={`${item.name} coupon`} className="ticket">
-      <div className={`h-2 rounded-t-[14px] ${accent}`} />
+    <article aria-label={`${item.name} coupon`} className={`token ${paper}`}>
       <div className="flex flex-col gap-4 p-5 sm:flex-row sm:items-stretch">
         <div className="flex-1">
-          <p className="font-display text-2xl font-extrabold leading-tight">
-            {plates} × {item.name}
-          </p>
-          <p className="text-sm text-muted">Dinner tonight, from 7:30 pm</p>
-          <p className={`mt-3 inline-block rounded-md px-2.5 py-1 text-sm font-bold ${TONE[status.tone]}`}>{status.text}</p>
+          <div className="flex items-center gap-2">
+            <FoodMark veg={veg} />
+            <p className="text-sm font-bold text-inksoft">Dinner tonight, from 7:30 pm</p>
+          </div>
+          <div className="mt-2 flex flex-wrap items-center justify-between gap-x-4 gap-y-2">
+            <p className="font-display text-5xl font-extrabold leading-none tracking-tight condensed">
+              {plates} × {item.name}
+            </p>
+            {stamp && (
+              <span key={stamp.text} aria-hidden className="stamp" style={{ color: stamp.color }}>
+                {stamp.text}
+              </span>
+            )}
+          </div>
+          <p className={`mt-3 text-sm font-bold ${TONE[status.tone]}`}>{status.text}</p>
           {action && <div className="mt-4">{action}</div>}
         </div>
         {usable && (
           <>
-            <div className="perforation sm:hidden" aria-hidden />
-            <div className="perforation-v hidden sm:block" aria-hidden />
-            <div className="mx-auto w-40 text-center sm:w-36">
-              <QrSvg value={booking.token} label={`QR code for coupon ${booking.shortCode}`} />
-              <p className="mt-2 font-display text-lg font-bold tracking-wider">{booking.shortCode}</p>
-              <p className="text-xs text-muted">Show this at the counter</p>
+            <div className="tear sm:hidden" aria-hidden />
+            <div className="tear-v hidden sm:block" aria-hidden />
+            <div className="mx-auto w-44 text-center sm:w-36">
+              <div className="rounded bg-white p-2.5">
+                <QrSvg value={booking.token} label={`QR code for coupon ${booking.shortCode}`} />
+              </div>
+              <p className="mt-2 font-display text-2xl font-extrabold tracking-wide condensed tnum">{booking.shortCode}</p>
+              <p className="text-xs text-inksoft">Show this at the counter</p>
             </div>
           </>
         )}
