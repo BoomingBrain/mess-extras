@@ -66,10 +66,13 @@ describe('closeDay — details', () => {
     expect(r.offering.confirmedPlates).toBe(1);
     expect(r.bookings.map((b) => b.id)).toEqual(['y']);
   });
-  it('sets the walk-in buffer from history, capped by spare capacity', () => {
+  it('sets the walk-in buffer to max(ceil(avg sold × 1.2), ceil(10% of confirmed)), capped by spare capacity', () => {
     const history = [hist('2026-10-22', 40, 4), hist('2026-10-29', 40, 4), hist('2026-11-05', 40, 5), hist('2026-11-12', 40, 5)];
-    // avg 4.5 → round 5; capacity 50
-    expect(run([booking()], 50 * 150, { history }).offering.bufferPlates).toBe(5);
+    // avg 4.5 × 1.2 = 5.4 → 6; capacity 50
+    expect(run([booking()], 50 * 150, { history }).offering.bufferPlates).toBe(6);
+    // no history: 10% of 30 confirmed = 3 (cold start must not lock walk-ins at 0)
+    const thirty = Array.from({ length: 30 }, (_, i) => booking({ id: `t${i}` }));
+    expect(run(thirty, 50 * 150).offering.bufferPlates).toBe(3);
     const six = [1, 2, 3, 4, 5, 6].map((i) => booking({ id: `b${i}` }));
     expect(run(six, 8 * 150, { history }).offering.bufferPlates).toBe(2);
   });
@@ -79,9 +82,9 @@ describe('closeDay — details', () => {
       batch({ id: 'new', gramsInitial: 3000, gramsRemaining: 3000 }),
     ];
     const r = run([booking({ platesRequested: 4 })], 0, { batches });
-    // buffer 0 (no history) → 600 g
+    // 4 confirmed + buffer ceil(0.4) = 1 → 750 g
     expect(r.batches.find((b) => b.id === 'old')!.gramsRemaining).toBe(0);
-    expect(r.batches.find((b) => b.id === 'new')!.gramsRemaining).toBe(2700);
+    expect(r.batches.find((b) => b.id === 'new')!.gramsRemaining).toBe(2550);
   });
   it('assumes the suggested purchase when none was recorded', () => {
     const r = closeDay({
@@ -98,7 +101,7 @@ describe('closeDay — details', () => {
       body: 'Your 2 plates of Paneer are confirmed. ₹120 added to your mess bill. Code: P-4K8Q2M',
     });
     expect(r.notifications.find((d) => d.dedupeKey === 'cook:2026-11-19:item-paneer')!.body).toBe(
-      'Bookings closed. Cook 2 booked + 0 walk-in = 2 plates of Paneer.',
+      'Bookings closed. Cook 2 booked + 1 walk-in = 3 plates of Paneer.',
     );
     expect(r.notifications.some((d) => d.kind === 'shortfall')).toBe(false);
   });

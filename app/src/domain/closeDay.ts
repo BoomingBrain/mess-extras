@@ -23,11 +23,17 @@ export interface CloseOutput {
   notifications: NotificationDraft[];
 }
 
-export function walkinBuffer(history: DayHistory[], date: string, spare: number): number {
+/**
+ * Walk-in plates to cook on top of bookings.
+ * History only records walk-ins *sold*, which the buffer itself caps, so a plain average
+ * would lock a zero buffer at zero forever. The ×1.2 lets it grow after sell-outs and the
+ * 10%-of-confirmed floor covers the cold start.
+ */
+export function walkinBuffer(history: DayHistory[], date: string, confirmed: number, spare: number): number {
   const past = sameWeekdayHistory(history, date);
-  if (past.length === 0) return 0;
-  const avg = Math.round(past.reduce((s, h) => s + h.walkins, 0) / past.length);
-  return Math.max(0, Math.min(spare, avg));
+  const avgSold = past.length ? past.reduce((s, h) => s + h.walkins, 0) / past.length : 0;
+  const want = Math.max(Math.ceil((avgSold * 12) / 10 - 1e-9), Math.ceil(confirmed / 10));
+  return Math.max(0, Math.min(spare, want));
 }
 
 export function closeDay(input: CloseInput): CloseOutput {
@@ -65,7 +71,7 @@ export function closeDay(input: CloseInput): CloseOutput {
   const confirmedPlates = confirmedBookings.reduce((s, b) => s + (b.platesConfirmed ?? 0), 0);
 
   // 4. Walk-in buffer.
-  const buffer = walkinBuffer(input.history, offering.date, capacity - confirmedPlates);
+  const buffer = walkinBuffer(input.history, offering.date, confirmedPlates, capacity - confirmedPlates);
 
   // 5. Charges.
   const charges: Charge[] = confirmedBookings.map((b) => ({

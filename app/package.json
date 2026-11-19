@@ -10,7 +10,8 @@
     "preview": "vite preview",
     "test": "vitest run",
     "db:setup": "tsx --env-file=.env.local scripts/db-setup.ts",
-    "db:seed": "tsx --env-file=.env.local scripts/seed.ts"
+    "db:seed": "tsx --env-file=.env.local scripts/seed.ts",
+    "evals": "tsx evals/run-evals.ts"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.47.10",
