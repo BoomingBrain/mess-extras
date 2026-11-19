@@ -34,7 +34,8 @@ function PurchaseForm({ offering }: { offering: Offering }) {
 function OfferingPanel({ offering: o, item }: { offering: Offering; item: Item }) {
   const now = useNow();
   const bookings = useBookings({ offeringId: o.id });
-  const active = (bookings.data ?? []).filter((b) => b.status === 'active');
+  // Only bookings made by now (simulated students' bookings are timestamped through the day).
+  const active = (bookings.data ?? []).filter((b) => b.status === 'active' && Date.parse(b.createdAt) <= now.getTime());
   const bookedPlates = active.reduce((s, b) => s + b.platesRequested, 0);
   const isOpen = o.status === 'open' && now.getTime() < Date.parse(o.cutoffAt);
   const accent = item.name === 'Chicken' ? 'border-chilli' : 'border-turmeric';

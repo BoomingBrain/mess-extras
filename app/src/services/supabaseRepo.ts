@@ -51,7 +51,8 @@ export function createSupabaseRepo(url: string, anonKey: string): Repo {
       return rows<Offering>(must(await s));
     },
     async insertOfferingIfAbsent(o) {
-      must(await db.from('offerings').upsert(toRow(o), { onConflict: 'item_id,date', ignoreDuplicates: true }));
+      const d = must(await db.from('offerings').upsert(toRow(o), { onConflict: 'item_id,date', ignoreDuplicates: true }).select('id')) as unknown[];
+      return d.length > 0;
     },
     async recordPurchase(offeringId, grams, now) {
       if (!Number.isInteger(grams) || grams <= 0) return err('Enter a quantity above 0');

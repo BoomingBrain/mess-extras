@@ -19,7 +19,7 @@ export function Accuracy() {
         </p>
       </div>
       {items.data.map((item) => {
-        const series = accuracySeries(offerings.data, item.id);
+        const series = accuracySeries(offerings.data, item.id, today);
         const recent = series.filter((p) => p.date >= addDays(today, -28));
         const color = item.name === 'Chicken' ? '#A8231C' : '#C98A00';
         return (
@@ -36,8 +36,8 @@ export function Accuracy() {
                   <YAxis tick={{ fontSize: 11, fill: '#5A6973' }} tickLine={false} axisLine={false} allowDecimals={false} />
                   <Tooltip />
                   <Legend wrapperStyle={{ fontSize: 13 }} />
-                  <Line name="Forecast" type="monotone" dataKey="forecast" stroke="#1C2830" strokeDasharray="5 4" strokeWidth={2} dot={false} />
-                  <Line name="Actual" type="monotone" dataKey="actual" stroke={color} strokeWidth={2.5} dot={{ r: 2.5 }} />
+                  <Line name="Forecast" type="monotone" dataKey="forecast" stroke="#1C2830" strokeDasharray="5 4" strokeWidth={2} dot={false} isAnimationActive={false} />
+                  <Line name="Actual" type="monotone" dataKey="actual" stroke={color} strokeWidth={2.5} dot={{ r: 2.5 }} isAnimationActive={false} />
                 </LineChart>
               </ResponsiveContainer>
             </div>

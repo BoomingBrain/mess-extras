@@ -14,6 +14,8 @@ export const useRepo = (): Repo => {
 };
 
 const SESSION_KEY = 'mess-extras-session';
+/** Demo: simulate other students' bookings on each new day (set VITE_SIMULATE_STUDENTS=false to turn off). */
+const SIMULATE = import.meta.env.VITE_SIMULATE_STUDENTS !== 'false';
 const readSession = () => { try { return localStorage.getItem(SESSION_KEY); } catch { return null; } };
 const writeSession = (v: string | null) => {
   try { if (v) localStorage.setItem(SESSION_KEY, v); else localStorage.removeItem(SESSION_KEY); } catch { /* ignore */ }
@@ -94,7 +96,7 @@ function Sync() {
     const tick = async () => {
       if (running.current) return;
       running.current = true;
-      try { await runTick(repo, resolveNow(clock, new Date())); } catch (e) { console.error('tick failed', e); }
+      try { await runTick(repo, resolveNow(clock, new Date()), { simulateStudents: SIMULATE }); } catch (e) { console.error('tick failed', e); }
       finally { running.current = false; }
     };
     void tick();

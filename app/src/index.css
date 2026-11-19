@@ -18,17 +18,20 @@
   .field { @apply w-full rounded-lg border border-line bg-white px-3 py-2.5 text-ink focus:border-ink focus:outline-none; }
 }
 
-/* The coupon: a perforated meal ticket with notched edges. */
-.ticket {
-  position: relative;
-  background: #fff;
-  border-radius: 14px;
-  -webkit-mask: radial-gradient(circle 11px at 0 var(--notch, 50%), #0000 98%, #000) left / 51% 100% no-repeat,
-                radial-gradient(circle 11px at 100% var(--notch, 50%), #0000 98%, #000) right / 51% 100% no-repeat;
-          mask: radial-gradient(circle 11px at 0 var(--notch, 50%), #0000 98%, #000) left / 51% 100% no-repeat,
-                radial-gradient(circle 11px at 100% var(--notch, 50%), #0000 98%, #000) right / 51% 100% no-repeat;
+/* The coupon: a meal ticket whose perforation bites a notch out of each edge. */
+.ticket { position: relative; background: #fff; border-radius: 14px; box-shadow: 0 1px 2px rgb(28 40 48 / 0.08); }
+.perforation { position: relative; border-top: 2px dashed #CBD3D9; }
+.perforation::before, .perforation::after {
+  content: ''; position: absolute; top: -12px; width: 22px; height: 22px; border-radius: 50%; background: #E9EDF0;
 }
-.perforation { border-top: 2px dashed #CBD3D9; }
+.perforation::before { left: -31px; }
+.perforation::after { right: -31px; }
+.perforation-v { position: relative; border-left: 2px dashed #CBD3D9; }
+.perforation-v::before, .perforation-v::after {
+  content: ''; position: absolute; left: -12px; width: 22px; height: 22px; border-radius: 50%; background: #E9EDF0;
+}
+.perforation-v::before { top: -31px; }
+.perforation-v::after { bottom: -31px; }
 
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { transition: none !important; animation: none !important; }

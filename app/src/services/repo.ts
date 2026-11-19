@@ -24,7 +24,8 @@ export interface Repo {
   listUsers(): Promise<User[]>;
 
   listOfferings(q: { from?: string; to?: string; itemId?: string }): Promise<Offering[]>;
-  insertOfferingIfAbsent(o: Offering): Promise<void>;
+  /** true when this call inserted it (false if another client already had). */
+  insertOfferingIfAbsent(o: Offering): Promise<boolean>;
   recordPurchase(offeringId: string, grams: number, now: Date): Promise<Result<Offering>>;
 
   listBookings(q: BookingQuery): Promise<Booking[]>;

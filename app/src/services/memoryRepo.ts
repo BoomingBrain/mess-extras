@@ -71,9 +71,10 @@ export function createMemoryRepo(seed: SeedData, persistence?: Persistence): Rep
         (!q.from || o.date >= q.from) && (!q.to || o.date <= q.to) && (!q.itemId || o.itemId === q.itemId)));
     },
     async insertOfferingIfAbsent(o) {
-      if (s.offerings.some((x) => x.itemId === o.itemId && x.date === o.date)) return;
+      if (s.offerings.some((x) => x.itemId === o.itemId && x.date === o.date)) return false;
       s = { ...s, offerings: [...s.offerings, o] };
       commit();
+      return true;
     },
     async recordPurchase(offeringId, grams, now) {
       const o = findOffering(offeringId);

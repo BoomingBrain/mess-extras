@@ -46,7 +46,7 @@ export function QrCoupon({ booking, item, action }: { booking: Booking; item: It
   const plates = booking.platesConfirmed ?? booking.platesRequested;
   const accent = item.name === 'Chicken' ? 'bg-chilli' : 'bg-turmeric';
   return (
-    <article aria-label={`${item.name} coupon`} className="ticket drop-shadow-sm" style={{ ['--notch' as string]: '62%' }}>
+    <article aria-label={`${item.name} coupon`} className="ticket">
       <div className={`h-2 rounded-t-[14px] ${accent}`} />
       <div className="flex flex-col gap-4 p-5 sm:flex-row sm:items-stretch">
         <div className="flex-1">
@@ -60,7 +60,7 @@ export function QrCoupon({ booking, item, action }: { booking: Booking; item: It
         {usable && (
           <>
             <div className="perforation sm:hidden" aria-hidden />
-            <div className="hidden border-l-2 border-dashed border-line sm:block" aria-hidden />
+            <div className="perforation-v hidden sm:block" aria-hidden />
             <div className="mx-auto w-40 text-center sm:w-36">
               <QrSvg value={booking.token} label={`QR code for coupon ${booking.shortCode}`} />
               <p className="mt-2 font-display text-lg font-bold tracking-wider">{booking.shortCode}</p>

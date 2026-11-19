@@ -46,6 +46,27 @@ export function historyFrom(offerings: Offering[], itemId: string): DayHistory[]
     .map((o) => ({ date: o.date, demand: (o.requestedPlates ?? o.confirmedPlates ?? 0) + o.walkinsSold, walkins: o.walkinsSold }));
 }
 
+/** Quick-login demo students never get simulated bookings, so their coupons are only their own. */
+export const DEMO_STUDENT_IDS = ['u-21BCE1001', 'u-21BCE1002'];
+
+/** Other students' bookings for one offering: 1–2 plates each, spread over 08:00–16:59 IST. */
+export function simulatedBookings(args: {
+  offering: Offering; item: Item; students: User[]; booked: number; rand: () => number; newId: () => string;
+}): Booking[] {
+  const { offering, item, students, rand } = args;
+  const out: Booking[] = [];
+  for (let left = args.booked; left > 0; ) {
+    const plates = Math.min(left, rand() < 0.8 ? 1 : 2);
+    left -= plates;
+    const student = students[Math.floor(rand() * students.length)];
+    const minute = Math.floor(rand() * 540);
+    const now = new Date(istAt(offering.date, '08:00').getTime() + minute * 60000);
+    const r = makeBooking({ id: args.newId(), offering, item, userId: student.id, plates, now, rand });
+    if (r.ok) out.push(r.value);
+  }
+  return out;
+}
+
 export interface SeedData {
   items: Item[];
   users: User[];
@@ -77,16 +98,7 @@ export function generateSeed(args: { today: string; weeks: number; seed: number 
       o = { ...o, purchasedGrams: o.forecastBuyGrams };
 
       const demand = trueDemand(item, date, Math.floor(day / 7), rand);
-      const dayBookings: Booking[] = [];
-      for (let left = demand.booked; left > 0; ) {
-        const plates = Math.min(left, rand() < 0.8 ? 1 : 2);
-        left -= plates;
-        const student = students[Math.floor(rand() * students.length)];
-        const minute = Math.floor(rand() * 540); // 08:00–16:59
-        const now = new Date(istAt(date, '08:00').getTime() + minute * 60000);
-        const r = makeBooking({ id: id('bk'), offering: o, item, userId: student.id, plates, now, rand });
-        if (r.ok) dayBookings.push(r.value);
-      }
+      const dayBookings = simulatedBookings({ offering: o, item, students, booked: demand.booked, rand, newId: () => id('bk') });
 
       const closed = closeDay({
         offering: o, item, bookings: dayBookings, batches, history: historyFrom(offerings, item.id),

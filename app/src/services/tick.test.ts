@@ -126,3 +126,29 @@ describe('runTick on the memory repo', () => {
     expect(calls).toBeGreaterThan(0);
   });
 });
+
+describe('runTick with simulated students (demo)', () => {
+  it('adds other students\' bookings once, spread over 8 am–5 pm, never for the quick-login students', async () => {
+    const repo = fresh();
+    await runTick(repo, at('09:00'), { simulateStudents: true });
+    const [o] = await todays(repo);
+    const sim = await repo.listBookings({ offeringId: o.id });
+    const plates = sim.reduce((s, b) => s + b.platesRequested, 0);
+    expect(plates).toBeGreaterThan(25);
+    expect(plates).toBeLessThan(80);
+    for (const b of sim) {
+      expect(['u-21BCE1001', 'u-21BCE1002']).not.toContain(b.userId);
+      expect(b.createdAt >= at('08:00').toISOString() && b.createdAt < at('17:00').toISOString()).toBe(true);
+    }
+    await runTick(repo, at('09:05'), { simulateStudents: true });
+    expect(await repo.listBookings({ offeringId: o.id })).toHaveLength(sim.length);
+  });
+
+  it('adds nothing without the option', async () => {
+    const repo = fresh();
+    await runTick(repo, at('09:00'));
+    const [o] = await todays(repo);
+    expect(await repo.listBookings({ offeringId: o.id })).toHaveLength(0);
+  });
+});
+

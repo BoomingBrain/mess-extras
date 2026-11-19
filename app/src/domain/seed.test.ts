@@ -50,6 +50,11 @@ describe('generateSeed', () => {
 });
 
 describe('accuracy', () => {
+  it('only counts finished days before today', () => {
+    const s = accuracySeries(seed.offerings, paneer.id, '2026-11-12');
+    expect(s.every((p) => p.date < '2026-11-12')).toBe(true);
+    expect(s.length).toBeLessThan(accuracySeries(seed.offerings, paneer.id).length);
+  });
   it('mape averages absolute percentage error to one decimal', () => {
     expect(mape([{ forecast: 50, actual: 40 }, { forecast: 45, actual: 50 }])).toBe(17.5);
   });

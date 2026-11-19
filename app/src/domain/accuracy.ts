@@ -6,9 +6,10 @@ export interface AccuracyPoint {
   actual: number;
 }
 
-export function accuracySeries(offerings: Offering[], itemId: string): AccuracyPoint[] {
+/** Closed offerings only; pass `before` (today) to leave out the unfinished day. */
+export function accuracySeries(offerings: Offering[], itemId: string, before?: string): AccuracyPoint[] {
   return offerings
-    .filter((o) => o.itemId === itemId && o.status === 'closed')
+    .filter((o) => o.itemId === itemId && o.status === 'closed' && (!before || o.date < before))
     .sort((a, b) => a.date.localeCompare(b.date))
     .map((o) => ({ date: o.date, forecast: o.forecastPlates, actual: (o.requestedPlates ?? o.confirmedPlates ?? 0) + o.walkinsSold }));
 }
