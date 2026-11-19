@@ -5,6 +5,9 @@ export function QrScanner({ onToken, onClose }: { onToken: (token: string) => vo
   const id = useRef(`qr-${Math.random().toString(36).slice(2)}`);
   const [error, setError] = useState<string | null>(null);
   const last = useRef<{ t: string; at: number } | null>(null);
+  // Latest callback in a ref: the parent re-renders every second, and restarting the camera each time breaks scanning.
+  const onTokenRef = useRef(onToken);
+  onTokenRef.current = onToken;
 
   useEffect(() => {
     let stop: (() => Promise<void>) | null = null;
@@ -21,7 +24,7 @@ export function QrScanner({ onToken, onClose }: { onToken: (token: string) => vo
             const now = Date.now();
             if (last.current && last.current.t === text && now - last.current.at < 3000) return;
             last.current = { t: text, at: now };
-            onToken(text.trim());
+            onTokenRef.current(text.trim());
           },
           () => undefined,
         );
@@ -32,7 +35,7 @@ export function QrScanner({ onToken, onClose }: { onToken: (token: string) => vo
       }
     })();
     return () => { cancelled = true; void stop?.(); };
-  }, [onToken]);
+  }, []);
 
   return (
     <div className="panel overflow-hidden">
