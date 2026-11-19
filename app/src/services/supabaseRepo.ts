@@ -137,14 +137,11 @@ export function createSupabaseRepo(url: string, anonKey: string): Repo {
     },
 
     async resetDemo(seed) {
-      must(await db.rpc('wipe_demo'));
-      const chunks = <T>(a: T[], n = 500) => Array.from({ length: Math.ceil(a.length / n) }, (_, i) => a.slice(i * n, i * n + n));
-      must(await db.from('users').insert(seed.users.map(toRow)));
-      must(await db.from('items').insert(seed.items.map(toRow)));
-      for (const c of chunks(seed.offerings)) must(await db.from('offerings').insert(c.map(toRow)));
-      for (const c of chunks(seed.bookings)) must(await db.from('bookings').insert(c.map(toRow)));
-      for (const c of chunks(seed.charges)) must(await db.from('charges').insert(c.map(toRow)));
-      for (const c of chunks(seed.batches)) must(await db.from('stock_batches').insert(c.map(toRow)));
+      // One RPC = one transaction, so closing the tab mid-reset can't leave the shared demo half-loaded.
+      must(await db.rpc('reset_demo', { p: {
+        users: seed.users.map(toRow), items: seed.items.map(toRow), offerings: seed.offerings.map(toRow),
+        bookings: seed.bookings.map(toRow), charges: seed.charges.map(toRow), batches: seed.batches.map(toRow),
+      } }));
     },
     subscribe(cb) {
       const ch = db.channel('mess-extras');

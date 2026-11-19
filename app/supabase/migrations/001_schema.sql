@@ -123,6 +123,19 @@ create or replace function wipe_demo() returns void language sql as $$
   update app_settings set demo_now = null, demo_set_at = null where id = 1;
 $$;
 
+-- Reset the demo in one transaction: a closed tab mid-reset can't leave half the data behind.
+create or replace function reset_demo(p jsonb) returns void language plpgsql as $$
+begin
+  truncate notifications, charges, bookings, stock_batches, offerings, items, users cascade;
+  update app_settings set demo_now = null, demo_set_at = null where id = 1;
+  insert into users select * from jsonb_populate_recordset(null::users, p->'users');
+  insert into items select * from jsonb_populate_recordset(null::items, p->'items');
+  insert into offerings select * from jsonb_populate_recordset(null::offerings, p->'offerings');
+  insert into bookings select * from jsonb_populate_recordset(null::bookings, p->'bookings');
+  insert into charges select * from jsonb_populate_recordset(null::charges, p->'charges');
+  insert into stock_batches select * from jsonb_populate_recordset(null::stock_batches, p->'batches');
+end $$;
+
 -- Newer Supabase projects don't grant the API roles access to tables made in SQL. Demo-grade: grant it all.
 grant usage on schema public to anon, authenticated;
 grant all on all tables in schema public to anon, authenticated;
