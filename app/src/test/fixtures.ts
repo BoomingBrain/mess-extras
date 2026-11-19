@@ -17,7 +17,7 @@ export function offering(over: Partial<Offering> = {}): Offering {
   return {
     id: 'off-1', itemId: paneer.id, date, cutoffAt: cutoffFor(date).toISOString(), status: 'open',
     forecastPlates: 50, forecastBuyGrams: 7500, forecastReason: '', purchasedGrams: 7500, purchaseAssumed: false,
-    capacityPlates: null, confirmedPlates: null, bufferPlates: null, walkinsSold: 0, closedAt: null,
+    capacityPlates: null, requestedPlates: null, confirmedPlates: null, bufferPlates: null, walkinsSold: 0, closedAt: null,
     ...over,
   };
 }

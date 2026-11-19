@@ -42,6 +42,10 @@ describe('closeDay — shortfall', () => {
     );
     expect(r.notifications.some((d) => d.dedupeKey === 'shortfall:2026-11-19:item-paneer')).toBe(true);
   });
+  it('records requested plates so history is not censored by the shortfall', () => {
+    const r = run(bs(), 5 * 150);
+    expect(r.offering).toMatchObject({ requestedPlates: 7, confirmedPlates: 5 });
+  });
   it('partially trims the latest booking', () => {
     const r = run(bs(), 6 * 150);
     const c = r.bookings.find((b) => b.id === 'C')!;

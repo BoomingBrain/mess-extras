@@ -77,7 +77,7 @@ export function closeDay(input: CloseInput): CloseOutput {
 
   offering = {
     ...offering, status: 'closed', closedAt: now.toISOString(),
-    capacityPlates: capacity, confirmedPlates, bufferPlates: buffer,
+    capacityPlates: capacity, requestedPlates: booked, confirmedPlates, bufferPlates: buffer,
   };
 
   // 7. Notifications.

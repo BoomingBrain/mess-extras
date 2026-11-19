@@ -36,6 +36,8 @@ export interface Offering {
   purchasedGrams: number | null;
   purchaseAssumed: boolean;
   capacityPlates: number | null;
+  /** Plates requested by active bookings at close — true demand, even in a shortfall */
+  requestedPlates: number | null;
   confirmedPlates: number | null;
   bufferPlates: number | null;
   walkinsSold: number;
