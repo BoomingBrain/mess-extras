@@ -1,6 +1,10 @@
 # App link
 
-**Live URL:** _to be added after deployment_
+**Live URL:** https://mess-extras.vercel.app
+
+**Source code:** https://github.com/BoomingBrain/mess-extras (see the README for setup)
+
+Everyone shares one database and one demo clock, like a real mess. If someone has already moved the clock, open **Demo clock → Reset demo data** to start clean (it takes a few seconds).
 
 ## Run it locally (no accounts needed)
 
@@ -15,7 +19,7 @@ With no Supabase keys, the app runs in **local mode**: data lives in your browse
 ## Try it in 2 minutes
 
 1. Log in as **Student 21BCE1001**.
-2. Open **Demo clock** (bottom right) and choose **4:00 pm**. Book 2 plates of tonight's extra. A QR coupon appears.
+2. Open **Demo clock** (bottom right) and choose **Next day, 9:00 am**, then **4:00 pm**. (The clock only moves forward, so starting from the next morning works at any time of day.) Book 2 plates of tonight's extra. A QR coupon appears.
 3. Choose **5:00 pm** on the Demo clock. Bookings lock. The bell shows the confirmation, and **My bill** shows ₹ charged.
 4. Choose **Switch to mess** on the Demo clock. **Today** shows the cooking sheet: plates booked by you plus the other (simulated) students, plus walk-ins.
 5. Go to **Counter** and type your coupon code. You get a green card. Choose **Mark served**, then type it again: "Already served at …".
